@@ -8,7 +8,12 @@ import requests
 import sys
 import six
 import re
+import logging
+import pkg_resources
 
+__version__ = pkg_resources.require('valispace')[0].version
+
+logger = logging.getLogger(__name__)
 
 class API:
     """
@@ -23,7 +28,7 @@ class API:
 
 
     def __init__(self, url=None, username=None, password=None, keep_credentials=False, warn_https=True):
-        print("\nAuthenticating Valispace...\n")
+        logger.info("\nAuthenticating Valispace...\n")
         if url is None:
             url = six.moves.input('Your Valispace url: ')
 
@@ -51,7 +56,7 @@ class API:
         if self.login(username, password):
             if keep_credentials:
                 self.username, self.password = username, password
-            print("You have been successfully connected to the {} API.".format(self._url))
+            logger.info("You have been successfully connected to the {} API.".format(self._url))
 
 
     def login(self, username=None, password=None):
@@ -320,10 +325,10 @@ class API:
         #        printing of returned values on error, but I suspect
         #        that is really better handled by the normal error-
         #        handling path and getting rid of these print()s
-        print(url)
+        logger.debug(url)
         result = self._session.get(self._url + url, data=data)
         if result.status_code != 200:
-            print(result.text)
+            logger.debug(result.text)
             raise Exception("Invalid Request.")
         return json.loads(result.text)
 
@@ -334,10 +339,10 @@ class API:
 
         url = "alexa_what_if/{}/{}/{}/".format(vali_name, target_name, value)
         # FIXME: (patrickyeon) same comment as on impact_analysis()
-        print(url)
+        logger.debug(url)
         result = self._session.get(self._url + url)
         if result.status_code != 200:
-            print(result.text)
+            logger.debug(result.text)
             raise Exception("Invalid Request.")
         return json.loads(result.text)
 
@@ -515,7 +520,7 @@ class API:
         result = self._session.post(self._url + url, data=data)
 
         if result.status_code == 201:
-            print("Successfully updated Vali:\n" + str(data) + "\n")
+            logger.info("Successfully updated Vali:\n" + str(data) + "\n")
         elif result.status_code == 204:
             raise Exception(
                 "The server successfully processed the request, but is not "
@@ -572,7 +577,7 @@ class API:
         if result.status_code == 401:
             # authentication expired
             if self.username is None:
-                print("Authentication expired, please re-login")
+                logger.info("Authentication expired, please re-login")
                 # otherwise, we've got it saved and this is transparent
             self.login(self.username, self.password)
             # try the request one more time
