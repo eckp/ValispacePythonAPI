@@ -9,9 +9,9 @@ import sys
 import six
 import re
 import logging
-import pkg_resources
+from importlib import metadata
 
-__version__ = pkg_resources.require('valispace')[0].version
+__version__ = metadata.version('valispace')
 
 logger = logging.getLogger(__name__)
 
